@@ -1,0 +1,6 @@
+syntax = "proto3";
+package sifter.proto.common;
+
+message Test {
+    string a = 1;
+}

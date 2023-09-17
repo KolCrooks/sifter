@@ -1,0 +1,12 @@
+[package]
+name = "faiss"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+autocxx = "0.26.0"
+thiserror = "1.0.48"
+cxx = "1.0"
+faiss_sys = { path = "../faiss_sys" }
