@@ -17,9 +17,10 @@ A `SourceBlock` will also be a standard size, so optimizations like storing each
 
 ```rs
 /// Interface for accessing the underlying data associated with a block
-struct SourceBlocks<'a> {}
+struct SourceBlocks<'a> {...}
+
 impl<'a> SourceBlocks<'a> {
-    fn id(&self) -> BlockId;
+    fn tag(&self) -> SourceTag;
     /// Can be used for determining the size of btree nodes to create
     fn block_size(&self) -> usize;
 }
@@ -33,5 +34,11 @@ trait DataSource {
     fn make_source_block<'a>(&'a self) -> SourceBlocks<'a>;
     /// Get a source block by id
     fn get_source_block(&self, id: BlockId) -> SourceBlocks<'a>;
+
+    fn alloc_block(&self) -> BlockId;
+    fn free_block(&self, id: BlockId);
+    fn flush(&self);
+    /// Force blocks into memory
+    fn force_load_blocks(&self, ids: &[BlockId]);
 }
 ```
