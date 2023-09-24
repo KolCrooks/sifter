@@ -2,15 +2,14 @@
 name = "faiss"
 version = "0.1.0"
 edition = "2021"
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-thiserror = "1.0.48"
-async-trait = "0.1.73"
-tokio = {version = "1.32.0", features = ["io-util", "sync"]}
 anyhow = "1.0.75"
+async-trait = "0.1.73"
 enum_dispatch = "0.3.12"
+thiserror = "1.0.48"
+tokio = { version = "1.32.0", features = ["io-util", "sync"] }
 
 [dev-dependencies]
-tokio = {version = "1.32.0", features = ["io-util", "sync", "rt", "macros"]}
+tokio = { version = "1.32.0", features = ["io-util", "sync", "rt", "macros"] }

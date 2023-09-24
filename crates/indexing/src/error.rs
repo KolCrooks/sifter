@@ -5,7 +5,7 @@ use thiserror::Error;
 pub enum FaissError {
     #[error(transparent)]
     Io(#[from] io::Error),
-    
+
     #[error("invalid arguments: {0}")]
     InvalidArguments(String),
 }

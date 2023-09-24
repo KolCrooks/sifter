@@ -2,7 +2,7 @@ use enum_dispatch::enum_dispatch;
 
 use crate::error;
 
-use crate::binary_index::{IndexBinaryChunked, IndexBinary};
+use crate::binary_index::{IndexBinary, IndexBinaryChunked};
 
 /// Trait for defining a vector that can be added to a Faiss binary index.
 pub trait Vector: Send {
@@ -12,10 +12,16 @@ pub trait Vector: Send {
 
 /// Result from searching an index.
 /// Contains the ids of the vectors and the distances from the search vector.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct SearchResult {
     pub id: i64,
     pub distance: i32,
+}
+
+impl PartialOrd for SearchResult {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.distance.cmp(&other.distance))
+    }
 }
 
 impl Ord for SearchResult {
@@ -28,11 +34,7 @@ impl Ord for SearchResult {
 #[enum_dispatch]
 pub trait Index {
     async fn add(&mut self, vector: &[u8]) -> error::Result<Box<[i64]>>;
-    async fn search(
-        &self,
-        search_vec: &[u8],
-        k: usize,
-    ) -> error::Result<Vec<SearchResult>>;
+    async fn search(&self, search_vec: &[u8], k: usize) -> error::Result<Vec<SearchResult>>;
     async fn search_range(
         &self,
         search_vec: &[u8],
