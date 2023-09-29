@@ -1,0 +1,100 @@
+use std::str::FromStr;
+use crate::{Value, OpTree, ScopeOpCode};
+use lalrpop_util::ParseError;
+use chrono::DateTime;
+
+grammar;
+
+pub Scope: OpTree = {
+    "(" <t:Scope> ")" => t,
+    <t:Op> => t,
+    MultiOp
+}
+
+MultiOp: OpTree = <mut o1:(Scope ScopeOp)+> <o2: Scope> => {
+    OpTree::ScopeOp(<>, {
+        o1.push(o2);
+        o1
+    })
+};
+
+
+ScopeOp: ScopeOpCode = {
+    "&&" => ScopeOpCode::And,
+    "||" => ScopeOpCode::Or
+}
+
+
+Op: OpTree = {
+    <o1: Value> "==" <o2: Value> => OpTree::Eq(o1, o2),
+    <o1: Value> "!=" <o2: Value> => OpTree::Neq(o1, o2),
+    <o1: Value> "<" <o2: Value> => OpTree::Lt(o1, o2),
+    <o1: Value> "<=" <o2: Value> => OpTree::Lte(o1, o2),
+    <o1: Value> ">" <o2: Value> => OpTree::Gt(o1, o2),
+    <o1: Value> ">=" <o2: Value> => OpTree::Gte(o1, o2),
+    <o1: Value> "within" <o2: Value> => OpTree::Within(o1, o2),
+    <o1: Value> "topk" <o2: Value> => OpTree::TopK(o1, o2),
+    <v: Value> => OpTree::Value(v)
+}
+
+pub Value: Value = {
+    <d: DoubleVal> => d,
+    <i: IntegerVal> => i,
+    <s: StringVal> => s,
+    <b: BoolVal> => b,
+    <d: DateTimeVal> => d,
+    <u: UuidVal> => u,
+    <r: ResourceTagVal> => r,
+    <l: LiteralVal> => l,
+} 
+
+DoubleVal: Value = <s:r"[0-9]*\.[0-9]+"> => 
+    Value::Double(f64::from_str(s).unwrap());
+
+IntegerVal: Value = {
+    <s:r"0[xX][0-9a-fA-F]+"> =>? 
+        i64::from_str_radix(&s[2..], 16)
+            .map(Value::Integer)
+            .map_err(|e| ParseError::User {
+                error: "Invalid Hex Integer"
+            }),
+    <s:r"[0-9]+"> =>? i64::from_str_radix(s, 10)
+        .map(Value::Integer)
+        .map_err(|e| ParseError::User {
+            error: "Unexpected invalid integer (THIS SHOULDN'T HAPPEN)"
+        })
+}
+
+BoolVal: Value = {
+    "true" => Value::Bool(true),
+    "false" => Value::Bool(false)
+}
+
+
+StringVal: Value = <s:r#"".*""#> =>
+    Value::String(s[1..s.len()-1].to_string());
+
+
+UuidVal: Value = "'" <s:r#"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"#> "'" =>? 
+    uuid::Uuid::parse_str(s)
+    .map(Value::UUID)
+    .map_err(|e| ParseError::User {
+        error: "Invalid UUID"
+    });
+
+DateTimeVal: Value = "'" <s:r#"((?:(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2}(?:\.\d+)?))(Z|[\+-]\d{2}:\d{2})?)"#> "'" =>?
+    DateTime::parse_from_rfc3339(s)
+        .map(|v|Value::DateTime(v.into()))
+        .map_err(|e| ParseError::User {
+            error: "Invalid DateTime"
+        });
+
+ResourceTagVal: Value = <s:r"\$[0-9]+"> =>? 
+    s[1..].parse()
+    .map(Value::ResourceTag)
+    .map_err(|e| ParseError::User {
+        error: "Invlaid Resource Tag"
+    });
+
+LiteralVal: Value = <s:r"[[:alpha:]][[:alnum:]]*"> =>
+    Value::Literal(s.to_string());

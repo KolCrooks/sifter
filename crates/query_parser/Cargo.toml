@@ -1,0 +1,15 @@
+[package]
+name = "query_parser"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = "0.4.31"
+uuid = {version = "1.4.1", features = ["v4"]}
+lalrpop-util = "0.20.0"
+anyhow = "1.0.75"
+
+[build-dependencies]
+lalrpop = "0.20.0"
