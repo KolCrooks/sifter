@@ -2,7 +2,6 @@ use std::{cmp::Reverse, collections::BinaryHeap, mem::size_of};
 
 use crate::{
     distance_metrics::{DistanceMetric, DistanceMetricFn, VecChunk},
-    error,
     index::{Index, SearchResult},
 };
 use enum_dispatch::enum_dispatch;
@@ -59,7 +58,7 @@ impl<ChunkT: VecChunk> IndexBinaryChunked<ChunkT> {
 
     fn vec_size_check(&self, n: usize, x: &[u8]) -> error::Result<()> {
         if x.len() != n * self.vector_bytes as usize {
-            return Err(error::FaissError::InvalidArguments(format!(
+            return Err(error::CustomErrors::InvalidArguments(format!(
                 "Expected {} bytes, got {}",
                 self.vector_bytes * n as u32,
                 x.len()

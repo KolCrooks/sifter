@@ -10,6 +10,7 @@ chrono = "0.4.31"
 uuid = {version = "1.4.1", features = ["v4"]}
 lalrpop-util = "0.20.0"
 anyhow = "1.0.75"
+snailquote = "0.3.1"
 
 [build-dependencies]
 lalrpop = "0.20.0"

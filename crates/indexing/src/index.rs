@@ -1,7 +1,5 @@
 use enum_dispatch::enum_dispatch;
 
-use crate::error;
-
 use crate::binary_index::{IndexBinary, IndexBinaryChunked};
 
 /// Trait for defining a vector that can be added to a Faiss binary index.

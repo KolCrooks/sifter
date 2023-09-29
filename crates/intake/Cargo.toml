@@ -1,9 +1,9 @@
 [package]
-name = "store"
+name = "intake"
 version = "0.1.0"
 edition = "2021"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tokio = { version = "1.32.0", features = ["sync", "fs"] }
-error = { path = "../error" }
+sifter_proto = { path = "../sifter_proto" }

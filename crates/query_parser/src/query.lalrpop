@@ -1,27 +1,23 @@
 use std::str::FromStr;
-use crate::{Value, OpTree, ScopeOpCode};
+use crate::{Value, OpTree};
 use lalrpop_util::ParseError;
 use chrono::DateTime;
+use snailquote::unescape;
 
 grammar;
 
+
 pub Scope: OpTree = {
     "(" <t:Scope> ")" => t,
-    <t:Op> => t,
-    MultiOp
+    "!(" <t:Scope> ")" => OpTree::Not(Box::new(t)),
+    <t: Op> => t,
+    <t:QuoteScopeOrValue> "&&" <t2:QuoteScopeOrValue> => OpTree::And(Box::new(t), Box::new(t2)),
+    <t:QuoteScopeOrValue> "||" <t2:QuoteScopeOrValue> => OpTree::Or(Box::new(t), Box::new(t2)) 
 }
 
-MultiOp: OpTree = <mut o1:(Scope ScopeOp)+> <o2: Scope> => {
-    OpTree::ScopeOp(<>, {
-        o1.push(o2);
-        o1
-    })
-};
-
-
-ScopeOp: ScopeOpCode = {
-    "&&" => ScopeOpCode::And,
-    "||" => ScopeOpCode::Or
+QuoteScopeOrValue: OpTree = {
+    "(" <t:Scope> ")" => t,
+    <v: Value> => OpTree::Value(v)
 }
 
 
@@ -34,6 +30,7 @@ Op: OpTree = {
     <o1: Value> ">=" <o2: Value> => OpTree::Gte(o1, o2),
     <o1: Value> "within" <o2: Value> => OpTree::Within(o1, o2),
     <o1: Value> "topk" <o2: Value> => OpTree::TopK(o1, o2),
+    "!" <o: Value> => OpTree::Not(Box::new(OpTree::Value(o))),
     <v: Value> => OpTree::Value(v)
 }
 
@@ -71,14 +68,18 @@ BoolVal: Value = {
 }
 
 
-StringVal: Value = <s:r#"".*""#> =>
-    Value::String(s[1..s.len()-1].to_string());
+StringVal: Value = <s:r#""(\\.|[^"])*""#> =>?
+    unescape(s)
+        .map(Value::String)
+        .map_err(|_| ParseError::User {
+        error: "Invalid String"
+    });
 
 
 UuidVal: Value = "'" <s:r#"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"#> "'" =>? 
     uuid::Uuid::parse_str(s)
     .map(Value::UUID)
-    .map_err(|e| ParseError::User {
+    .map_err(|_| ParseError::User {
         error: "Invalid UUID"
     });
 
@@ -93,7 +94,7 @@ ResourceTagVal: Value = <s:r"\$[0-9]+"> =>?
     s[1..].parse()
     .map(Value::ResourceTag)
     .map_err(|e| ParseError::User {
-        error: "Invlaid Resource Tag"
+        error: "Invalid Resource Tag"
     });
 
 LiteralVal: Value = <s:r"[[:alpha:]][[:alnum:]]*"> =>
