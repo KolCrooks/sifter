@@ -1,35 +1,39 @@
-pub enum DataType {
-    I8,
-    I16,
-    I32,
+use chrono::{DateTime, Utc};
+
+pub enum ColumnTypes {
     I64,
-    U8,
-    U16,
-    U32,
-    U64,
-    F32,
     F64,
     String,
     Bool,
     DateTime,
     UUID,
     Bytes,
-    BinaryVector,
+    BinaryVector
+}
+
+pub enum DataValue {
+    I64(i64),
+    F64(f64),
+    String(String),
+    Bool(bool),
+    DateTime(DateTime<Utc>),
+    UUID(uuid::Uuid),
+    Bytes(Vec<u8>)
 }
 
 pub struct Column {
     pub name: String,
-    pub data_type: DataType,
+    pub data_type: ColumnTypes,
 }
 
 pub struct PrimaryKey {
     pub name: String,
-    pub data_type: DataType,
+    pub data_type: ColumnTypes,
 }
 
 pub struct Index {
     pub name: String,
-    pub data_type: DataType,
+    pub data_type: ColumnTypes,
     pub is_partition_key: bool,
 }
 
@@ -42,4 +46,12 @@ pub struct DropTable {
     pub name: String,
 }
 
-pub struct Query {}
+type PartitionId = u64;
+
+pub struct Query {
+    pub table: String,
+    pub partitions: Vec<PartitionId>,
+    pub query: query_parser::OpTree,
+    pub parameters: Vec<DataValue>,
+    pub columns: Vec<Column>,
+}

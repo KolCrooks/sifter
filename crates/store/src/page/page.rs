@@ -5,10 +5,9 @@ use tokio::{
     sync::{RwLock, RwLockReadGuard}, pin,
 };
 
-use crate::{source::SourceTag, page_manager::{self, PageManager}};
+use crate::source::SourceTag;
 
 pub type PageId = u64;
-
 pub struct InMemoryData {
     data: Box<[u8]>,
     dirty: bool,
@@ -80,8 +79,8 @@ impl<'a> AsyncRead for PageReader<'a> {
                 this.state = PageReadState::Done;
                 Poll::Ready(Ok(()))
             }
-            PageReadState::LoadingPage(fut) => {
-
+            PageReadState::AcquiringPage(fut) => {
+                todo!()
             },
         }
     }

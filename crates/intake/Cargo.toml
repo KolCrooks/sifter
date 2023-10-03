@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 sifter_proto = { path = "../sifter_proto" }
+query_parser = { path = "../query_parser" }
+chrono = "0.4.31"
+uuid = "1.4.1"
